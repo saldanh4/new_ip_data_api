@@ -16,9 +16,8 @@ type IpData struct {
 func (ipController *IpDataController) GetTotalSearchByIP(c *gin.Context) {
 	var ipData *IpData
 
-	if err := c.ShouldBindJSON(&givenIp); err != nil {
-		value := "Given data error: " + err.Error()
-		c.AbortWithStatusJSON(http.StatusBadRequest, value)
+	givenIp, err := CheckIpEntrydata(c)
+	if err != nil {
 		return
 	}
 

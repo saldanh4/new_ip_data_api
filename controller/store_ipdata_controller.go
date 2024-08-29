@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"net/http"
 	"new_ip_data_api/model"
 	"time"
@@ -14,8 +13,9 @@ import (
 func (ipController *IpDataController) StoreIpData(c *gin.Context) {
 
 	//checagem dos dados de entrada
-	givenIp, err := CheckIpEntrydata(c)
+	status, message, givenIp, err := CheckIpEntrydata(c)
 	if err != nil {
+		c.AbortWithStatusJSON(status, gin.H{"message": message})
 		return
 	}
 
@@ -29,7 +29,7 @@ func (ipController *IpDataController) StoreIpData(c *gin.Context) {
 	result, err := client.GetLocationForIp(string(givenIp.Ip))
 	if err != nil {
 		value := "Given IP error: " + err.Error()
-		c.AbortWithStatusJSON(http.StatusBadRequest, value)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, value)
 		return
 	}
 
@@ -37,14 +37,16 @@ func (ipController *IpDataController) StoreIpData(c *gin.Context) {
 	ipData := model.SetIpData(result, h)
 
 	//Chamando a função para salvar os dados no banco e retornando os dados para exibir resposta ao usuário.
-	informedIp, err := ipController.ipDataUsecase.StoreIpData(ipData)
+	status, statusMessage, informedIp, err := ipController.ipDataUsecase.StoreIpData(ipData)
 	if err != nil {
-		c.IndentedJSON(http.StatusInternalServerError, err)
-
+		c.IndentedJSON(status, gin.H{"message": statusMessage, "error": err})
+		return
 	}
-	mID := fmt.Sprintf("%d", informedIp.Id)
-	mIP := informedIp.Query
-	message := ("Criado o ID: " + mID + " com os dados do IP: " + mIP)
-	c.IndentedJSON(http.StatusCreated, message)
+	c.IndentedJSON(status, gin.H{
+		" message": statusMessage,
+		"data": gin.H{
+			"id": informedIp.Id,
+			"ip": informedIp.Query},
+	})
 
 }

@@ -2,12 +2,12 @@ package usecase
 
 import "new_ip_data_api/model"
 
-func (ipUseCase *IpDataUsecase) GetTotalSearchByIP(ipNumber string) (*model.IpDataInfo, error) {
+func (ipUseCase *IpDataUsecase) GetTotalSearchByIP(ipNumber string) (int, string, *model.IpDataInfo, error) {
 
-	ipData, err := ipUseCase.repository.GetTotalSearchByIP(ipNumber)
+	status, message, ipData, err := ipUseCase.repository.GetTotalSearchByIP(ipNumber)
 	if err != nil {
-		return nil, err
+		return status, message, nil, err
 	}
 
-	return ipData, nil
+	return status, message, ipData, err
 }

@@ -1,19 +1,31 @@
 package repository
 
 import (
-	"database/sql"
+	"errors"
 	"fmt"
+	"net/http"
 	"new_ip_data_api/model"
 )
 
-const searchCountryQuery = "SELECT * FROM ip_data_endpoints  WHERE country = $1 GROUP BY id order by isp"
+func (ipRepo *IpDataRepository) GetTotalSearchByCountry(givenCountry string) (int, string, []model.IpDataInfo, error) {
 
-func (ipRepo *IpDataRepository) GetTotalSearchByCountry(givenCountry string) ([]model.IpDataInfo, error) {
+	err := ipRepo.connection.QueryRow(SELECT_COUNTRY_EXISTS_QUERY, givenCountry).Scan(&exists)
+	if err != nil {
+		message = "Erro ao efetuar consulta no banco de dados."
+		return http.StatusInternalServerError, message, []model.IpDataInfo{}, err
+	}
 
-	query, err := ipRepo.connection.Query(searchCountryQuery, givenCountry)
+	if !exists {
+		message = "Não foram localizados dados para " + givenCountry + " em nosso banco de dados."
+		err := errors.New(message)
+		return http.StatusNotFound, message, []model.IpDataInfo{}, err
+	}
+
+	query, err := ipRepo.connection.Query(SEARCH_COUNTRY_QUERY, givenCountry)
 	if err != nil {
 		fmt.Println("Implementar log: ", err)
-		return []model.IpDataInfo{}, err
+		message = "Erro ao efetuar consulta no banco de dados."
+		return http.StatusInternalServerError, message, []model.IpDataInfo{}, err
 	}
 
 	var countryList []model.IpDataInfo
@@ -40,19 +52,12 @@ func (ipRepo *IpDataRepository) GetTotalSearchByCountry(givenCountry string) ([]
 
 		if err != nil {
 			fmt.Println(err)
-			return []model.IpDataInfo{}, err
+			message = "Erro ao efetuar consulta no banco de dados."
+			return http.StatusInternalServerError, message, []model.IpDataInfo{}, err
 		}
 		countryList = append(countryList, ipData)
 	}
-
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil
-		}
-
-		return nil, err
-	}
-
+	message = "Consulta realizada com sucesso"
 	query.Close()
-	return countryList, nil
+	return http.StatusOK, message, countryList, nil
 }

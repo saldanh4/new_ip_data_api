@@ -2,28 +2,34 @@ package repository
 
 import (
 	"fmt"
+	"net/http"
 )
 
-const deleteIpQuery = "DELETE FROM ip_data_endpoints WHERE query = $1"
+func (ipRepo *IpDataRepository) DeleteIpDataByIp(ipNumber string) (int, string, error) {
 
-func (ipRepo *IpDataRepository) DeleteIpDataByIp(ipNumber string) (string, error) {
-	//Criar query para salvar o IP no banco de dados e retornar o ID para que seja usado no use case
-	var message string
+	err := ipRepo.connection.QueryRow(SELECT_IP_EXISTS_QUERY, ipNumber).Scan(&exists)
+	if err != nil {
+		message = "Erro ao efetuar consulta no banco de dados. Erro: "
+		return http.StatusInternalServerError, message, err
+	}
 
-	query, err := ipRepo.connection.Prepare(deleteIpQuery)
-	// var id int
-	//
-	fmt.Printf("query: %v\n", query)
+	if !exists {
+		message = "IP: " + ipNumber + ". Não consta na base de dados!"
+		return http.StatusNotFound, message, err
+	}
+
+	query, err := ipRepo.connection.Prepare(DELETE_IP_QUERY)
+
 	if err != nil {
 		fmt.Println("implementar log: ", err)
-		return "deu ruim", err
+		message = "Erro ao efetuar consulta no banco de dados. Erro: "
+		return http.StatusInternalServerError, message, err
 	}
 
 	err = query.QueryRow(ipNumber)
 
-	fmt.Printf("query: %v\n", query)
-	message = "Apagado os registros para o IP " + ipNumber
+	message = "Todos os registros para o IP " + ipNumber + " foram apagados!"
 
 	query.Close()
-	return message, nil
+	return http.StatusOK, message, nil
 }

@@ -2,37 +2,33 @@ package repository
 
 import (
 	"database/sql"
-	"fmt"
+	"net/http"
 	"new_ip_data_api/model"
 )
 
-const searchIpQuery = "SELECT query, isp, country, COUNT(*) as qtd FROM ip_data_endpoints  WHERE query = $1 GROUP BY query, isp, country"
+func (ipRepo *IpDataRepository) GetTotalSearchByIP(ipNumber string) (int, string, *model.IpDataInfo, error) {
 
-func (ipRepo *IpDataRepository) GetTotalSearchByIP(ipNumber string) (*model.IpDataInfo, error) {
-	//var ipList []model.IpDataInfo
 	var ipData model.IpDataInfo
 
-	query, err := ipRepo.connection.Prepare(searchIpQuery)
+	query, err := ipRepo.connection.Prepare(SEARCH_BY_IP_QUERY)
 	if err != nil {
-		fmt.Println("Implementar log: ", err)
-		return &model.IpDataInfo{}, err
+		message = "Erro ao efetuar consulta no banco de dados."
+		return http.StatusInternalServerError, message, &model.IpDataInfo{}, err
 	}
 
-	err = query.QueryRow(ipNumber).Scan(
+	if err := query.QueryRow(ipNumber).Scan(
 		&ipData.Query,
 		&ipData.Isp,
 		&ipData.Country,
-		&ipData.Count,
-	)
-
-	if err != nil {
+		&ipData.Count); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, nil
+			message = "IP " + ipNumber + "não localizado no banco de dados!"
+			return http.StatusNotFound, message, nil, err
 		}
-
-		return nil, err
+		message = "Erro ao efetuar consulta no banco de dados."
+		return http.StatusInternalServerError, message, nil, err
 	}
-
+	message = "Consulta realizada com sucesso"
 	query.Close()
-	return &ipData, nil
+	return http.StatusOK, message, &ipData, err
 }

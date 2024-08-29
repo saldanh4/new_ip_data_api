@@ -1,19 +1,18 @@
 package repository
 
 import (
-	"fmt"
+	"net/http"
 	"new_ip_data_api/model"
 )
 
-const previousQuery = "INSERT INTO ip_data_endpoints (as_number, city, country, countrycode, isp, lat, lon, org, query, region, regionname, status, timezone, zip, time_stamp) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)"
+func (ipRepo *IpDataRepository) StoreIpData(ipDataInfo model.IpDataInfo) (int, string, int, error) {
 
-func (ipRepo *IpDataRepository) StoreIpData(ipDataInfo model.IpDataInfo) (int, error) {
-	//Criar query para salvar o IP no banco de dados e retornar o ID para que seja usado no use case
 	var id int
-	query, err := ipRepo.connection.Prepare(previousQuery + " RETURNING id")
+	query, err := ipRepo.connection.Prepare(INSERT_IP_DATA_QUERY + " RETURNING id")
 	if err != nil {
-		fmt.Println("implementar log: ", err)
-		return 0, err
+
+		message = "Erro ao executar query no banco de dados."
+		return http.StatusInternalServerError, message, 0, err
 	}
 
 	err = query.QueryRow(
@@ -33,10 +32,10 @@ func (ipRepo *IpDataRepository) StoreIpData(ipDataInfo model.IpDataInfo) (int, e
 		ipDataInfo.Zip,
 		ipDataInfo.TimeStamp).Scan(&id)
 	if err != nil {
-		fmt.Println("implementar log: ", err)
-		return 0, err
+		message = "Erro ao executar query no banco de dados."
+		return http.StatusInternalServerError, message, 0, err
 	}
-
+	message = "Cadastro realizado com sucesso"
 	query.Close()
-	return id, nil
+	return http.StatusOK, message, id, nil
 }

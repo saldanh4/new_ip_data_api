@@ -1,8 +1,6 @@
 package controller
 
 import (
-	"net/http"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -17,10 +15,11 @@ func (ipController *IpDataController) GetTotalSearchByCountry(c *gin.Context) {
 		return
 	}
 
-	result, err := ipController.ipDataUsecase.GetTotalSearchByCountry(givenCountry.Country)
+	status, message, result, err := ipController.ipDataUsecase.GetTotalSearchByCountry(givenCountry.Country)
 	if err != nil {
-		c.IndentedJSON(http.StatusInternalServerError, err)
+		c.IndentedJSON(status, gin.H{"message": message, "status": status})
+		return
 	}
 
-	c.IndentedJSON(http.StatusOK, result)
+	c.IndentedJSON(status, gin.H{"result": result, "message": message})
 }

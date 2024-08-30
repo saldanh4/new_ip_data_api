@@ -5,10 +5,7 @@ import (
 )
 
 func (ipDataController *IpDataController) DeleteIpDataByIp(c *gin.Context) {
-	// givenIp, err := CheckIpEntrydata(c)
-	// if err != nil {
-	// 	return
-	// }
+
 	status, statusMessage, givenIp, err := CheckIpEntrydata(c)
 	if err != nil {
 		c.AbortWithStatusJSON(status, gin.H{"message": statusMessage})

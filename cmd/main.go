@@ -1,8 +1,8 @@
 package main
 
 import (
+	db "new_ip_data_api/config/conn"
 	l "new_ip_data_api/config/logger"
-	db "new_ip_data_api/conn"
 	"new_ip_data_api/controller"
 	"new_ip_data_api/repository"
 	"new_ip_data_api/route"

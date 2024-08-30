@@ -2,11 +2,13 @@ package controller
 
 import (
 	"net/http"
+	l "new_ip_data_api/config/logger"
 	"new_ip_data_api/model"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	goip "github.com/jpiontek/go-ip-api"
+	"go.uber.org/zap"
 )
 
 // função POST recebendo um objeto IpDataController
@@ -15,6 +17,7 @@ func (ipController *IpDataController) StoreIpData(c *gin.Context) {
 	//checagem dos dados de entrada
 	status, message, givenIp, err := CheckIpEntrydata(c)
 	if err != nil {
+		l.Logger.Warn(message, zap.Error(err))
 		c.AbortWithStatusJSON(status, gin.H{"message": message})
 		return
 	}

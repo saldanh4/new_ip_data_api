@@ -1,6 +1,7 @@
 package main
 
 import (
+	l "new_ip_data_api/config/logger"
 	db "new_ip_data_api/conn"
 	"new_ip_data_api/controller"
 	"new_ip_data_api/repository"
@@ -11,6 +12,10 @@ import (
 )
 
 func main() {
+	l.LoggerInit()
+	defer l.Logger.Sync()
+	l.Logger.Info("Aplicação iniciada")
+
 	server := gin.Default()
 
 	dbConnection, err := db.Init()

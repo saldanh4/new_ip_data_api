@@ -3,9 +3,11 @@ package controller
 import (
 	"net"
 	"net/http"
+	l "new_ip_data_api/config/logger"
 	"new_ip_data_api/usecase"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 type IpDataController struct {
@@ -29,6 +31,7 @@ func CheckIpEntrydata(c *gin.Context) (int, string, *GivenIP, error) {
 	//Checagem do body da requisição onde aponta o resultado para o endereço de memória de givenIp
 	if err := c.ShouldBindBodyWithJSON(&givenIp); err != nil {
 		message = "Given data error: " + err.Error()
+		l.Logger.Warn(message, zap.Error(err))
 		return http.StatusBadRequest, message, &GivenIP{}, err
 	}
 
@@ -36,9 +39,11 @@ func CheckIpEntrydata(c *gin.Context) (int, string, *GivenIP, error) {
 	checkIP, _, err := net.ParseCIDR(givenIp.Ip + "/32")
 	if err != nil {
 		message = "O parâmetro informado não possui o padrão de um IP válido"
+		l.Logger.Warn(message, zap.Error(err))
 		return http.StatusBadRequest, message, &GivenIP{}, err
 	} else if checkIP.To4() == nil {
 		message = "O parâmetro informado não é um IP válido!"
+		l.Logger.Warn(message, zap.Error(err))
 		return http.StatusBadRequest, message, &GivenIP{}, err
 	}
 

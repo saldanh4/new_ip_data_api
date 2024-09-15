@@ -47,17 +47,19 @@ func CheckIpEntrydata(c *gin.Context) (int, string, *GivenIP, error) {
 		return http.StatusBadRequest, message, &GivenIP{}, err
 	}
 
+	l.Logger.Info(message, zap.Int("status", http.StatusOK))
 	return http.StatusOK, message, &givenIp, nil
 }
 
 // Função para checagem dos dados de pesquisa por país
-func CheckCountryEntrydata(c *gin.Context) (*GivenCountry, error) {
+func CheckCountryEntrydata(c *gin.Context) (int, string, *GivenCountry, error) {
 	var givenCountry GivenCountry
 
 	if err := c.ShouldBindBodyWithJSON(&givenCountry); err != nil {
 		value := "Given data error: " + err.Error()
-		c.AbortWithStatusJSON(http.StatusBadRequest, value)
-		return &GivenCountry{}, err
+		l.Logger.Warn(value, zap.Int("status", http.StatusBadRequest))
+		return http.StatusBadRequest, value, &GivenCountry{}, err
 	}
-	return &givenCountry, nil
+	l.Logger.Info("ok", zap.Int("status", http.StatusOK))
+	return http.StatusOK, "ok", &givenCountry, nil
 }

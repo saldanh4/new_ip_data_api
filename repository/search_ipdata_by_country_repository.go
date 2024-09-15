@@ -2,29 +2,33 @@ package repository
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
+	l "new_ip_data_api/config/logger"
 	"new_ip_data_api/model"
+
+	"go.uber.org/zap"
 )
 
 func (ipRepo *IpDataRepository) GetTotalSearchByCountry(givenCountry string) (int, string, []model.IpDataInfo, error) {
-
+	message = "Erro interno."
 	err := ipRepo.connection.QueryRow(SELECT_COUNTRY_EXISTS_QUERY, givenCountry).Scan(&exists)
 	if err != nil {
-		message = "Erro ao efetuar consulta no banco de dados."
+
+		l.Logger.Error(message, zap.Error(err))
 		return http.StatusInternalServerError, message, []model.IpDataInfo{}, err
 	}
 
 	if !exists {
 		message = "Não foram localizados dados para " + givenCountry + " em nosso banco de dados."
 		err := errors.New(message)
+		l.Logger.Warn(message, zap.Int("status", http.StatusNotFound))
 		return http.StatusNotFound, message, []model.IpDataInfo{}, err
 	}
 
 	query, err := ipRepo.connection.Query(SEARCH_COUNTRY_QUERY, givenCountry)
 	if err != nil {
-		fmt.Println("Implementar log: ", err)
-		message = "Erro ao efetuar consulta no banco de dados."
+
+		l.Logger.Error(message, zap.Error(err))
 		return http.StatusInternalServerError, message, []model.IpDataInfo{}, err
 	}
 
@@ -51,13 +55,14 @@ func (ipRepo *IpDataRepository) GetTotalSearchByCountry(givenCountry string) (in
 			&ipData.TimeStamp)
 
 		if err != nil {
-			fmt.Println(err)
-			message = "Erro ao efetuar consulta no banco de dados."
+
+			l.Logger.Error(message, zap.Error(err))
 			return http.StatusInternalServerError, message, []model.IpDataInfo{}, err
 		}
 		countryList = append(countryList, ipData)
 	}
 	message = "Consulta realizada com sucesso"
+	l.Logger.Info(message, zap.Int("status", http.StatusOK))
 	query.Close()
 	return http.StatusOK, message, countryList, nil
 }

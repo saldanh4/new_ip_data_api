@@ -14,7 +14,7 @@ func (ipRepo *IpDataRepository) StoreIpData(ipDataInfo model.IpDataInfo) (int, s
 	query, err := ipRepo.connection.Prepare(INSERT_IP_DATA_QUERY + " RETURNING id")
 	if err != nil {
 		message = "Erro ao executar query no banco de dados."
-		l.Logger.Error(message)
+		l.Logger.Error(message, zap.Error(err))
 		return http.StatusInternalServerError, message, 0, err
 	}
 
@@ -37,11 +37,11 @@ func (ipRepo *IpDataRepository) StoreIpData(ipDataInfo model.IpDataInfo) (int, s
 	if err != nil {
 		message = "Erro ao executar query no banco de dados."
 		l.Logger.Error(message, zap.Error(err))
-		return http.StatusInternalServerError, message, 0, err
+		return http.StatusInternalServerError, "", 0, err
 	}
 
 	message = "Cadastro realizado com sucesso"
-	l.Logger.Info(message)
+	l.Logger.Info(message, zap.Int("status", http.StatusOK))
 	query.Close()
 	return http.StatusOK, message, id, nil
 }

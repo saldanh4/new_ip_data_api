@@ -1,7 +1,10 @@
 package controller
 
 import (
+	l "new_ip_data_api/config/logger"
+
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 type GivenCountry struct {
@@ -10,16 +13,20 @@ type GivenCountry struct {
 
 func (ipController *IpDataController) GetTotalSearchByCountry(c *gin.Context) {
 
-	givenCountry, err := CheckCountryEntrydata(c)
+	status, message, givenCountry, err := CheckCountryEntrydata(c)
 	if err != nil {
+		l.Logger.Warn(message, zap.Int("status", status))
+		c.AbortWithStatusJSON(status, message)
 		return
 	}
 
 	status, message, result, err := ipController.ipDataUsecase.GetTotalSearchByCountry(givenCountry.Country)
 	if err != nil {
-		c.IndentedJSON(status, gin.H{"message": message, "status": status})
+		l.Logger.Warn(message, zap.Int("status", status))
+		c.AbortWithStatusJSON(status, gin.H{"message": message, "status": status})
 		return
 	}
 
+	l.Logger.Info(message, zap.Int("status", status))
 	c.IndentedJSON(status, gin.H{"result": result, "message": message})
 }

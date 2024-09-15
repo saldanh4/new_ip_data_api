@@ -17,8 +17,8 @@ func (ipController *IpDataController) StoreIpData(c *gin.Context) {
 	//checagem dos dados de entrada
 	status, message, givenIp, err := CheckIpEntrydata(c)
 	if err != nil {
-		l.Logger.Warn(message, zap.Error(err))
-		c.AbortWithStatusJSON(status, gin.H{"message": message})
+		l.Logger.Warn(message, zap.Int("status", status))
+		c.AbortWithStatusJSON(status, gin.H{"message": message, "status": status})
 		return
 	}
 
@@ -32,7 +32,8 @@ func (ipController *IpDataController) StoreIpData(c *gin.Context) {
 	result, err := client.GetLocationForIp(string(givenIp.Ip))
 	if err != nil {
 		value := "Given IP error: " + err.Error()
-		c.AbortWithStatusJSON(http.StatusInternalServerError, value)
+		l.Logger.Warn(value, zap.Int("status", http.StatusBadRequest))
+		c.AbortWithStatusJSON(http.StatusBadRequest, value)
 		return
 	}
 
@@ -42,14 +43,15 @@ func (ipController *IpDataController) StoreIpData(c *gin.Context) {
 	//Chamando a função para salvar os dados no banco e retornando os dados para exibir resposta ao usuário.
 	status, statusMessage, informedIp, err := ipController.ipDataUsecase.StoreIpData(ipData)
 	if err != nil {
-		c.IndentedJSON(status, gin.H{"message": statusMessage, "error": err})
+		l.Logger.Info(statusMessage, zap.Int("status", status))
+		c.IndentedJSON(status, gin.H{"status": status})
 		return
 	}
+
+	l.Logger.Info(statusMessage, zap.Int("status", status))
 	c.IndentedJSON(status, gin.H{
-		" message": statusMessage,
-		"data": gin.H{
-			"id": informedIp.Id,
-			"ip": informedIp.Query},
-	})
+		"id": informedIp.Id,
+		"ip": informedIp.Query},
+	)
 
 }

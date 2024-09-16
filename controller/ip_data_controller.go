@@ -63,3 +63,15 @@ func CheckCountryEntrydata(c *gin.Context) (int, string, *GivenCountry, error) {
 	l.Logger.Info("ok", zap.Int("status", http.StatusOK))
 	return http.StatusOK, "ok", &givenCountry, nil
 }
+
+func CheckIpsEntrydata(c *gin.Context) (int, string, *GivenIps, error) {
+	var givenIps GivenIps
+
+	if err := c.ShouldBindBodyWithJSON(&givenIps); err != nil {
+		value := "Given data error: " + err.Error()
+		l.Logger.Warn(value, zap.Int("status", http.StatusBadRequest))
+		return http.StatusBadRequest, value, &GivenIps{}, err
+	}
+	l.Logger.Info("ok", zap.Int("status", http.StatusOK))
+	return http.StatusOK, "ok", &givenIps, nil
+}

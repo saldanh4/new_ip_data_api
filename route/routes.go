@@ -21,5 +21,6 @@ func Endpoints(server *gin.Engine, controller *controller.IpDataController) {
 	server.GET("/total_search_by_ip/", controller.GetTotalSearchByIP)
 	server.GET("/total_search_by_country/", controller.GetTotalSearchByCountry)
 	server.DELETE("/delete_entries_by_ip/", controller.DeleteIpDataByIp)
+	server.GET("/nearest_to_se_square/", controller.DistanciaPcaSe)
 	server.Run(":8080")
 }

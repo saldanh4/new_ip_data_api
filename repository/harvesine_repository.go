@@ -9,11 +9,6 @@ import (
 	"go.uber.org/zap"
 )
 
-const (
-	latSe float64 = -23.5505
-	lonSe float64 = -46.6333
-)
-
 var query string = `
 SELECT 
 	EXISTS(SELECT 1 FROM ip_data_endpoints WHERE query = $1) AS ip1_exists,
